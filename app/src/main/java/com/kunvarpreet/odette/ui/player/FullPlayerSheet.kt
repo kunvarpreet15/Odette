@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
@@ -77,6 +78,7 @@ import com.kunvarpreet.odette.ui.components.SongArtwork
 @Composable
 fun FullPlayerSheet(
     playerState: PlayerState,
+    isFavorite: Boolean,
     onDismiss: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
@@ -84,12 +86,13 @@ fun FullPlayerSheet(
     onSeekTo: (Long) -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeat: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
     onQueueItemClicked: (Int) -> Unit
 ) {
     val currentSong = playerState.currentSong ?: return
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showQueue by remember { mutableStateOf(false) }
-    var isFavorite by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -149,7 +152,8 @@ fun FullPlayerSheet(
                     currentSong = currentSong,
                     playerState = playerState,
                     isFavorite = isFavorite,
-                    onToggleFavorite = { isFavorite = !isFavorite },
+                    onToggleFavorite = onToggleFavorite,
+                    onAddToPlaylist = { onAddToPlaylist(currentSong) },
                     onSeekTo = onSeekTo,
                     onPlayPauseClicked = onPlayPauseClicked,
                     onNextClicked = onNextClicked,
@@ -168,6 +172,7 @@ private fun PlayerMainView(
     playerState: PlayerState,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
+    onAddToPlaylist: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
@@ -214,7 +219,7 @@ private fun PlayerMainView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Title and Artist with Favorite Toggle
+        // Title and Artist with Favorite Toggle and Add to Playlist
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -238,13 +243,24 @@ private fun PlayerMainView(
                 )
             }
 
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Favorite",
-                    tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp)
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onAddToPlaylist) {
+                    Icon(
+                        imageVector = Icons.Rounded.PlaylistAdd,
+                        contentDescription = "Add to Playlist",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                IconButton(onClick = onToggleFavorite) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         }
 

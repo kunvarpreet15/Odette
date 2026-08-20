@@ -22,20 +22,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,8 +66,11 @@ fun LibraryScreen(
     albums: List<Album>,
     artists: List<Artist>,
     genres: List<Genre>,
+    favoriteSongIds: Set<String> = emptySet(),
     playerState: PlayerState,
     onSongSelected: (Song) -> Unit,
+    onToggleFavorite: (String) -> Unit = {},
+    onAddToPlaylist: (Song) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -90,7 +102,14 @@ fun LibraryScreen(
         }
 
         when (selectedTabIndex) {
-            0 -> SongsTab(songs = songs, playerState = playerState, onSongSelected = onSongSelected)
+            0 -> SongsTab(
+                songs = songs,
+                favoriteSongIds = favoriteSongIds,
+                playerState = playerState,
+                onSongSelected = onSongSelected,
+                onToggleFavorite = onToggleFavorite,
+                onAddToPlaylist = onAddToPlaylist
+            )
             1 -> AlbumsTab(albums = albums)
             2 -> ArtistsTab(artists = artists)
             3 -> GenresTab(genres = genres)
@@ -101,8 +120,11 @@ fun LibraryScreen(
 @Composable
 private fun SongsTab(
     songs: List<Song>,
+    favoriteSongIds: Set<String>,
     playerState: PlayerState,
-    onSongSelected: (Song) -> Unit
+    onSongSelected: (Song) -> Unit,
+    onToggleFavorite: (String) -> Unit,
+    onAddToPlaylist: (Song) -> Unit
 ) {
     if (songs.isEmpty()) {
         EmptyTab(text = "No songs found in your library")
@@ -123,7 +145,8 @@ private fun SongsTab(
 
             items(songs, key = { it.id }) { song ->
                 val isCurrent = playerState.currentSong?.id == song.id
-                val isPlaying = isCurrent && playerState.isPlaying
+                val isFavorite = favoriteSongIds.contains(song.id)
+                var showMenu by remember { mutableStateOf(false) }
 
                 Card(
                     modifier = Modifier
@@ -141,7 +164,13 @@ private fun SongsTab(
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        SongArtwork(artworkUri = song.artworkUri, size = 48.dp, cornerRadius = 10.dp)
+                        SongArtwork(
+                            artworkUri = song.artworkUri,
+                            contentDescription = song.title,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        )
 
                         Spacer(modifier = Modifier.width(12.dp))
 
@@ -164,11 +193,37 @@ private fun SongsTab(
                             )
                         }
 
-                        Text(
-                            text = formatDuration(song.durationMs),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        IconButton(onClick = { onToggleFavorite(song.id) }) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Favorite",
+                                tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.MoreVert,
+                                    contentDescription = "Options",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Add to playlist") },
+                                    leadingIcon = { Icon(Icons.Rounded.PlaylistAdd, contentDescription = null) },
+                                    onClick = {
+                                        showMenu = false
+                                        onAddToPlaylist(song)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -179,26 +234,29 @@ private fun SongsTab(
 @Composable
 private fun AlbumsTab(albums: List<Album>) {
     if (albums.isEmpty()) {
-        EmptyTab(text = "No albums found in your library")
+        EmptyTab(text = "No albums found")
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 90.dp, top = 12.dp, start = 16.dp, end = 16.dp),
+            contentPadding = PaddingValues(bottom = 90.dp, top = 16.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(albums, key = { it.id }) { album ->
                 Card(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         SongArtwork(
                             artworkUri = album.artworkUri,
-                            size = 150.dp,
-                            cornerRadius = 12.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            contentDescription = album.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .size(140.dp)
+                                .clip(RoundedCornerShape(12.dp))
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -209,11 +267,16 @@ private fun AlbumsTab(albums: List<Album>) {
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "${album.artist} • ${album.songCount} songs",
-                            style = MaterialTheme.typography.labelSmall,
+                            text = album.artist,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "${album.songCount} songs",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -225,7 +288,7 @@ private fun AlbumsTab(albums: List<Album>) {
 @Composable
 private fun ArtistsTab(artists: List<Artist>) {
     if (artists.isEmpty()) {
-        EmptyTab(text = "No artists found in your library")
+        EmptyTab(text = "No artists found")
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -234,33 +297,36 @@ private fun ArtistsTab(artists: List<Artist>) {
         ) {
             items(artists, key = { it.id }) { artist ->
                 Card(
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Person,
+                                    contentDescription = artist.name,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = artist.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
                             )
                             Text(
                                 text = "${artist.songCount} tracks",
@@ -278,7 +344,7 @@ private fun ArtistsTab(artists: List<Artist>) {
 @Composable
 private fun GenresTab(genres: List<Genre>) {
     if (genres.isEmpty()) {
-        EmptyTab(text = "No genres categorized in your library")
+        EmptyTab(text = "No genres found")
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -287,25 +353,43 @@ private fun GenresTab(genres: List<Genre>) {
         ) {
             items(genres, key = { it.id }) { genre ->
                 Card(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                    modifier = Modifier.fillMaxWidth()
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Category,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Category,
+                                    contentDescription = genre.name,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = genre.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = genre.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "${genre.songCount} songs",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -321,18 +405,19 @@ private fun EmptyTab(text: String) {
             .padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Rounded.MusicNote,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
-}
-
-private fun formatDuration(durationMs: Long): String {
-    if (durationMs <= 0) return "0:00"
-    val totalSeconds = durationMs / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return String.format("%d:%02d", minutes, seconds)
 }

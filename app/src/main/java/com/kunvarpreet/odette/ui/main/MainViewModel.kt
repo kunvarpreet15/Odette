@@ -252,6 +252,17 @@ class MainViewModel @Inject constructor(
         playerController.playSong(shuffled.first(), shuffled)
     }
 
+    fun playPlaylistById(playlistId: String, shuffle: Boolean = false) {
+        viewModelScope.launch {
+            getPlaylistWithSongsUseCase(playlistId).collect { playlistWithSongs ->
+                val pSongs = playlistWithSongs?.songs ?: emptyList()
+                if (pSongs.isNotEmpty()) {
+                    if (shuffle) shufflePlaylist(pSongs) else playPlaylist(pSongs)
+                }
+            }
+        }
+    }
+
     fun onPlayQueueIndex(index: Int) {
         playerController.playQueueIndex(index)
     }

@@ -1,6 +1,7 @@
 package com.kunvarpreet.odette.di
 
 import android.content.Context
+import com.kunvarpreet.odette.domain.usecase.RecordPlaybackUseCase
 import com.kunvarpreet.odette.player.MusicPlayerController
 import dagger.Module
 import dagger.Provides
@@ -16,8 +17,9 @@ object PlayerModule {
     @Provides
     @Singleton
     fun provideMusicPlayerController(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        recordPlaybackUseCase: RecordPlaybackUseCase
     ): MusicPlayerController {
-        return MusicPlayerController(context)
+        return MusicPlayerController(context, recordPlaybackUseCase)
     }
 }

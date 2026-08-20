@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.kunvarpreet.odette.domain.model.Song
+import com.kunvarpreet.odette.ui.components.AddToPlaylistBottomSheet
 import com.kunvarpreet.odette.ui.components.MiniPlayer
 import com.kunvarpreet.odette.ui.navigation.BottomNavBar
 import com.kunvarpreet.odette.ui.navigation.NavGraph
@@ -26,7 +28,11 @@ fun MainScreen(
 ) {
     val navController = rememberNavController()
     val playerState by viewModel.playerState.collectAsState()
+    val favoriteSongIds by viewModel.favoriteSongIds.collectAsState()
+    val playlists by viewModel.playlists.collectAsState()
+
     var showFullPlayer by remember { mutableStateOf(false) }
+    var selectedSongForPlaylist by remember { mutableStateOf<Song?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -54,6 +60,9 @@ fun MainScreen(
             onRequestPermission = {
                 permissionLauncher.launch(viewModel.requiredPermission())
             },
+            onAddToPlaylist = { song ->
+                selectedSongForPlaylist = song
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -61,8 +70,12 @@ fun MainScreen(
     }
 
     if (showFullPlayer && playerState.currentSong != null) {
+        val currentSong = playerState.currentSong!!
+        val isFavorite = favoriteSongIds.contains(currentSong.id)
+
         FullPlayerSheet(
             playerState = playerState,
+            isFavorite = isFavorite,
             onDismiss = { showFullPlayer = false },
             onPlayPauseClicked = { viewModel.onPlayPauseToggled() },
             onNextClicked = { viewModel.onNextClicked() },
@@ -70,7 +83,23 @@ fun MainScreen(
             onSeekTo = { viewModel.onSeekTo(it) },
             onToggleShuffle = { viewModel.onToggleShuffle() },
             onToggleRepeat = { viewModel.onToggleRepeat() },
+            onToggleFavorite = { viewModel.toggleFavorite(currentSong.id) },
+            onAddToPlaylist = { song -> selectedSongForPlaylist = song },
             onQueueItemClicked = { index -> viewModel.onPlayQueueIndex(index) }
+        )
+    }
+
+    selectedSongForPlaylist?.let { song ->
+        AddToPlaylistBottomSheet(
+            song = song,
+            playlists = playlists,
+            onDismiss = { selectedSongForPlaylist = null },
+            onAddToPlaylist = { playlistId, songId ->
+                viewModel.addSongToPlaylist(playlistId, songId)
+            },
+            onCreatePlaylistAndAdd = { playlistName, songId ->
+                viewModel.createPlaylist(playlistName, initialSongId = songId)
+            }
         )
     }
 }

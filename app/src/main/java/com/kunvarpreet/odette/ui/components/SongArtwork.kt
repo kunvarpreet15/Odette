@@ -24,6 +24,7 @@ import coil.request.ImageRequest
 fun SongArtwork(
     artworkUri: String?,
     modifier: Modifier = Modifier,
+    contentDescription: String? = null,
     size: Dp = 48.dp,
     cornerRadius: Dp = 8.dp,
     iconSize: Dp = size * 0.55f
@@ -43,14 +44,14 @@ fun SongArtwork(
                     .data(artworkUri)
                     .crossfade(true)
                     .build(),
-                contentDescription = "Album Artwork",
+                contentDescription = contentDescription ?: "Album Artwork",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
         } else {
             Icon(
                 imageVector = Icons.Rounded.MusicNote,
-                contentDescription = null,
+                contentDescription = contentDescription,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(iconSize)
             )
