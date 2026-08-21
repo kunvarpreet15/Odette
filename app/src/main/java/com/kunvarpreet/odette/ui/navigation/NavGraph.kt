@@ -93,6 +93,18 @@ fun NavGraph(
                 favoriteSongIds = favoriteSongIds,
                 playerState = playerState,
                 onSongSelected = { song -> viewModel.onSongSelected(song, songs) },
+                onAlbumSelected = { album ->
+                    val albumSongs = songs.filter { it.album.equals(album.title, ignoreCase = true) }
+                    if (albumSongs.isNotEmpty()) viewModel.onSongSelected(albumSongs.first(), albumSongs)
+                },
+                onArtistSelected = { artist ->
+                    val artistSongs = songs.filter { it.artist.equals(artist.name, ignoreCase = true) }
+                    if (artistSongs.isNotEmpty()) viewModel.onSongSelected(artistSongs.first(), artistSongs)
+                },
+                onGenreSelected = { genre ->
+                    val genreSongs = songs.filter { it.genre?.equals(genre.name, ignoreCase = true) == true }
+                    if (genreSongs.isNotEmpty()) viewModel.onSongSelected(genreSongs.first(), genreSongs)
+                },
                 onToggleFavorite = { songId -> viewModel.toggleFavorite(songId) },
                 onAddToPlaylist = onAddToPlaylist
             )
@@ -191,10 +203,23 @@ fun NavGraph(
         }
 
         composable(Screen.Settings.route) {
+            val themeMode by viewModel.themeMode.collectAsState()
+            val dynamicColor by viewModel.dynamicColor.collectAsState()
+            val skipForwardSeconds by viewModel.skipForwardSeconds.collectAsState()
+            val skipBackwardSeconds by viewModel.skipBackwardSeconds.collectAsState()
+
             SettingsScreen(
                 songCount = songs.size,
                 albumCount = albums.size,
                 artistCount = artists.size,
+                themeMode = themeMode,
+                dynamicColor = dynamicColor,
+                skipForwardSeconds = skipForwardSeconds,
+                skipBackwardSeconds = skipBackwardSeconds,
+                onThemeModeChanged = { viewModel.onThemeModeChanged(it) },
+                onDynamicColorChanged = { viewModel.onDynamicColorChanged(it) },
+                onSkipForwardChanged = { viewModel.onSkipForwardChanged(it) },
+                onSkipBackwardChanged = { viewModel.onSkipBackwardChanged(it) },
                 onRescanLibrary = { viewModel.refreshLibrary() }
             )
         }

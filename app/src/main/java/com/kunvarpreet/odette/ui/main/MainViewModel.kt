@@ -7,6 +7,8 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kunvarpreet.odette.data.repository.AppThemeMode
+import com.kunvarpreet.odette.data.repository.UserPreferencesRepository
 import com.kunvarpreet.odette.domain.model.Album
 import com.kunvarpreet.odette.domain.model.Artist
 import com.kunvarpreet.odette.domain.model.Genre
@@ -42,6 +44,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -59,6 +63,7 @@ class MainViewModel @Inject constructor(
     private val searchMusicUseCase: SearchMusicUseCase,
     private val refreshSongsUseCase: RefreshSongsUseCase,
     private val playerController: MusicPlayerController,
+    private val preferencesRepository: UserPreferencesRepository,
     getFavoriteSongIdsUseCase: GetFavoriteSongIdsUseCase,
     getFavoriteSongsUseCase: GetFavoriteSongsUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
@@ -75,6 +80,12 @@ class MainViewModel @Inject constructor(
 
     private val _hasPermission = MutableStateFlow(checkMediaPermission())
     val hasPermission: StateFlow<Boolean> = _hasPermission.asStateFlow()
+
+    // Settings & Preferences
+    val themeMode: StateFlow<AppThemeMode> = preferencesRepository.themeMode
+    val dynamicColor: StateFlow<Boolean> = preferencesRepository.dynamicColor
+    val skipForwardSeconds: StateFlow<Int> = preferencesRepository.skipForwardSeconds
+    val skipBackwardSeconds: StateFlow<Int> = preferencesRepository.skipBackwardSeconds
 
     val songs: StateFlow<List<Song>> = getSongsUseCase()
         .stateIn(
@@ -133,6 +144,7 @@ class MainViewModel @Inject constructor(
         )
 
     val playerState: StateFlow<PlayerState> = playerController.playerState
+    val playbackError: StateFlow<String?> = playerController.errorMessage
 
     // Search with Debounce
     private val _searchQuery = MutableStateFlow("")
@@ -150,6 +162,17 @@ class MainViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        // Automatically restore playback state (last queue, song, position) on library availability
+        viewModelScope.launch {
+            songs.collect { songList ->
+                if (songList.isNotEmpty()) {
+                    playerController.restoreSavedPlaybackState(songList)
+                }
+            }
+        }
+    }
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
@@ -179,6 +202,27 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             refreshSongsUseCase()
         }
+    }
+
+    // Preferences Actions
+    fun onThemeModeChanged(mode: AppThemeMode) {
+        preferencesRepository.setThemeMode(mode)
+    }
+
+    fun onDynamicColorChanged(enabled: Boolean) {
+        preferencesRepository.setDynamicColor(enabled)
+    }
+
+    fun onSkipForwardChanged(seconds: Int) {
+        preferencesRepository.setSkipForwardSeconds(seconds)
+    }
+
+    fun onSkipBackwardChanged(seconds: Int) {
+        preferencesRepository.setSkipBackwardSeconds(seconds)
+    }
+
+    fun clearPlaybackError() {
+        playerController.clearErrorMessage()
     }
 
     // Favorites
@@ -254,8 +298,8 @@ class MainViewModel @Inject constructor(
 
     fun playPlaylistById(playlistId: String, shuffle: Boolean = false) {
         viewModelScope.launch {
-            getPlaylistWithSongsUseCase(playlistId).collect { playlistWithSongs ->
-                val pSongs = playlistWithSongs?.songs ?: emptyList()
+            getPlaylistWithSongsUseCase(playlistId).firstOrNull()?.let { playlistWithSongs ->
+                val pSongs = playlistWithSongs.songs
                 if (pSongs.isNotEmpty()) {
                     if (shuffle) shufflePlaylist(pSongs) else playPlaylist(pSongs)
                 }
@@ -269,6 +313,13 @@ class MainViewModel @Inject constructor(
 
     fun onPlayPauseToggled() {
         val currentState = playerState.value
+        if (currentState.currentSong == null) {
+            val available = songs.value
+            if (available.isNotEmpty()) {
+                onSongSelected(available.first(), available)
+            }
+            return
+        }
         if (currentState.isPlaying) {
             playerController.pause()
         } else {
@@ -290,6 +341,14 @@ class MainViewModel @Inject constructor(
 
     fun onSeekTo(positionMs: Long) {
         playerController.seekTo(positionMs)
+    }
+
+    fun onSeekForward() {
+        playerController.seekForward(skipForwardSeconds.value)
+    }
+
+    fun onSeekBackward() {
+        playerController.seekBackward(skipBackwardSeconds.value)
     }
 
     fun onToggleShuffle() {

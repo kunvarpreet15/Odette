@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.net.toUri
 
 @Singleton
 class MediaStoreDataSource @Inject constructor(
@@ -47,7 +48,7 @@ class MediaStoreDataSource @Inject constructor(
             }
         }.toTypedArray()
 
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+        val selection = "${MediaStore.Audio.Media.DURATION} >= 1000"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
         try {
@@ -75,40 +76,44 @@ class MediaStoreDataSource @Inject constructor(
                 } else -1
 
                 while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idColumn)
-                    val title = cursor.getString(titleColumn) ?: "Unknown Title"
-                    val artist = cursor.getString(artistColumn) ?: "<unknown>"
-                    val album = cursor.getString(albumColumn) ?: "Unknown Album"
-                    val durationMs = cursor.getLong(durationColumn)
-                    val albumId = cursor.getLong(albumIdColumn)
+                    try {
+                        val id = cursor.getLong(idColumn)
+                        val title = cursor.getString(titleColumn) ?: "Unknown Title"
+                        val artist = cursor.getString(artistColumn) ?: "<unknown>"
+                        val album = cursor.getString(albumColumn) ?: "Unknown Album"
+                        val durationMs = cursor.getLong(durationColumn)
+                        val albumId = cursor.getLong(albumIdColumn)
 
-                    val year = if (yearColumn != -1 && !cursor.isNull(yearColumn)) cursor.getInt(yearColumn) else null
-                    val track = if (trackColumn != -1 && !cursor.isNull(trackColumn)) cursor.getInt(trackColumn) else null
-                    val genre = if (genreColumn != -1 && !cursor.isNull(genreColumn)) cursor.getString(genreColumn) else null
-                    val albumArtist = if (albumArtistColumn != -1 && !cursor.isNull(albumArtistColumn)) cursor.getString(albumArtistColumn) else null
+                        val year = if (yearColumn != -1 && !cursor.isNull(yearColumn)) cursor.getInt(yearColumn) else null
+                        val track = if (trackColumn != -1 && !cursor.isNull(trackColumn)) cursor.getInt(trackColumn) else null
+                        val genre = if (genreColumn != -1 && !cursor.isNull(genreColumn)) cursor.getString(genreColumn) else null
+                        val albumArtist = if (albumArtistColumn != -1 && !cursor.isNull(albumArtistColumn)) cursor.getString(albumArtistColumn) else null
 
-                    val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                    val artworkUri: Uri = ContentUris.withAppendedId(
-                        Uri.parse("content://media/external/audio/albumart"),
-                        albumId
-                    )
-
-                    songList.add(
-                        Song(
-                            id = id.toString(),
-                            title = title,
-                            artist = if (artist == "<unknown>") "Unknown Artist" else artist,
-                            album = album,
-                            durationMs = durationMs,
-                            mediaUri = contentUri.toString(),
-                            artworkUri = artworkUri.toString(),
-                            albumArtist = albumArtist,
-                            year = year,
-                            trackNumber = track,
-                            genre = genre,
-                            albumId = albumId
+                        val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                        val artworkUri: Uri = ContentUris.withAppendedId(
+                            "content://media/external/audio/albumart".toUri(),
+                            albumId
                         )
-                    )
+
+                        songList.add(
+                            Song(
+                                id = id.toString(),
+                                title = title,
+                                artist = if (artist == "<unknown>") "Unknown Artist" else artist,
+                                album = album,
+                                durationMs = durationMs,
+                                mediaUri = contentUri.toString(),
+                                artworkUri = artworkUri.toString(),
+                                albumArtist = albumArtist,
+                                year = year,
+                                trackNumber = track,
+                                genre = genre,
+                                albumId = albumId
+                            )
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -149,7 +154,7 @@ class MediaStoreDataSource @Inject constructor(
                     val songCount = cursor.getInt(songCountColumn)
 
                     val artworkUri = ContentUris.withAppendedId(
-                        Uri.parse("content://media/external/audio/albumart"),
+                        "content://media/external/audio/albumart".toUri(),
                         id
                     )
 

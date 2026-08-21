@@ -29,6 +29,7 @@ object MediaItemMapper {
         }
 
         val artworkUri = runCatching { song.artworkUri?.let { Uri.parse(it) } }.getOrNull()
+        val mediaUri = runCatching { Uri.parse(song.mediaUri) }.getOrNull()
 
         val metadata = MediaMetadata.Builder()
             .setTitle(song.title)
@@ -42,12 +43,17 @@ object MediaItemMapper {
             .setExtras(extras)
             .build()
 
+        val requestMetadata = MediaItem.RequestMetadata.Builder()
+            .setMediaUri(mediaUri)
+            .build()
+
         val builder = MediaItem.Builder()
             .setMediaId(song.id)
+            .setRequestMetadata(requestMetadata)
             .setMediaMetadata(metadata)
 
-        runCatching {
-            builder.setUri(song.mediaUri)
+        if (mediaUri != null) {
+            builder.setUri(mediaUri)
         }
 
         return builder.build()

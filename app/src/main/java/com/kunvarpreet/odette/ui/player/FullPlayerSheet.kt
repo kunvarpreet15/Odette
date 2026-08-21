@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -81,11 +83,15 @@ import com.kunvarpreet.odette.ui.components.SongArtwork
 fun FullPlayerSheet(
     playerState: PlayerState,
     isFavorite: Boolean,
+    skipForwardSeconds: Int = 10,
+    skipBackwardSeconds: Int = 10,
     onDismiss: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
     onSeekTo: (Long) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBackward: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeat: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -154,9 +160,13 @@ fun FullPlayerSheet(
                     currentSong = currentSong,
                     playerState = playerState,
                     isFavorite = isFavorite,
+                    skipForwardSeconds = skipForwardSeconds,
+                    skipBackwardSeconds = skipBackwardSeconds,
                     onToggleFavorite = onToggleFavorite,
                     onAddToPlaylist = { onAddToPlaylist(currentSong) },
                     onSeekTo = onSeekTo,
+                    onSeekForward = onSeekForward,
+                    onSeekBackward = onSeekBackward,
                     onPlayPauseClicked = onPlayPauseClicked,
                     onNextClicked = onNextClicked,
                     onPreviousClicked = onPreviousClicked,
@@ -173,9 +183,13 @@ private fun PlayerMainView(
     currentSong: Song,
     playerState: PlayerState,
     isFavorite: Boolean,
+    skipForwardSeconds: Int,
+    skipBackwardSeconds: Int,
     onToggleFavorite: () -> Unit,
     onAddToPlaylist: () -> Unit,
     onSeekTo: (Long) -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBackward: () -> Unit,
     onPlayPauseClicked: () -> Unit,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
@@ -314,9 +328,44 @@ private fun PlayerMainView(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Quick Skip Buttons Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = onSeekBackward,
+                    modifier = Modifier.padding(horizontal = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.FastRewind,
+                        contentDescription = "Seek backward $skipBackwardSeconds seconds",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "-${skipBackwardSeconds}s", style = MaterialTheme.typography.labelSmall)
+                }
+
+                TextButton(
+                    onClick = onSeekForward,
+                    modifier = Modifier.padding(horizontal = 0.dp)
+                ) {
+                    Text(text = "+${skipForwardSeconds}s", style = MaterialTheme.typography.labelSmall)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.FastForward,
+                        contentDescription = "Seek forward $skipForwardSeconds seconds",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Playback Controls Row
         Row(

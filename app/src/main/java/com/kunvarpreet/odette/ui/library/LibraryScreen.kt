@@ -70,6 +70,9 @@ fun LibraryScreen(
     favoriteSongIds: Set<String> = emptySet(),
     playerState: PlayerState,
     onSongSelected: (Song) -> Unit,
+    onAlbumSelected: (Album) -> Unit = {},
+    onArtistSelected: (Artist) -> Unit = {},
+    onGenreSelected: (Genre) -> Unit = {},
     onToggleFavorite: (String) -> Unit = {},
     onAddToPlaylist: (Song) -> Unit = {},
     modifier: Modifier = Modifier
@@ -111,9 +114,18 @@ fun LibraryScreen(
                 onToggleFavorite = onToggleFavorite,
                 onAddToPlaylist = onAddToPlaylist
             )
-            1 -> AlbumsTab(albums = albums)
-            2 -> ArtistsTab(artists = artists)
-            3 -> GenresTab(genres = genres)
+            1 -> AlbumsTab(
+                albums = albums,
+                onAlbumSelected = onAlbumSelected
+            )
+            2 -> ArtistsTab(
+                artists = artists,
+                onArtistSelected = onArtistSelected
+            )
+            3 -> GenresTab(
+                genres = genres,
+                onGenreSelected = onGenreSelected
+            )
         }
     }
 }
@@ -233,7 +245,10 @@ private fun SongsTab(
 }
 
 @Composable
-private fun AlbumsTab(albums: List<Album>) {
+private fun AlbumsTab(
+    albums: List<Album>,
+    onAlbumSelected: (Album) -> Unit
+) {
     if (albums.isEmpty()) {
         EmptyTab(text = "No albums found")
     } else {
@@ -246,7 +261,9 @@ private fun AlbumsTab(albums: List<Album>) {
         ) {
             items(albums, key = { it.id }) { album ->
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAlbumSelected(album) },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
@@ -287,7 +304,10 @@ private fun AlbumsTab(albums: List<Album>) {
 }
 
 @Composable
-private fun ArtistsTab(artists: List<Artist>) {
+private fun ArtistsTab(
+    artists: List<Artist>,
+    onArtistSelected: (Artist) -> Unit
+) {
     if (artists.isEmpty()) {
         EmptyTab(text = "No artists found")
     } else {
@@ -298,7 +318,9 @@ private fun ArtistsTab(artists: List<Artist>) {
         ) {
             items(artists, key = { it.id }) { artist ->
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onArtistSelected(artist) },
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
@@ -343,7 +365,10 @@ private fun ArtistsTab(artists: List<Artist>) {
 }
 
 @Composable
-private fun GenresTab(genres: List<Genre>) {
+private fun GenresTab(
+    genres: List<Genre>,
+    onGenreSelected: (Genre) -> Unit
+) {
     if (genres.isEmpty()) {
         EmptyTab(text = "No genres found")
     } else {
@@ -354,7 +379,9 @@ private fun GenresTab(genres: List<Genre>) {
         ) {
             items(genres, key = { it.id }) { genre ->
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onGenreSelected(genre) },
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {

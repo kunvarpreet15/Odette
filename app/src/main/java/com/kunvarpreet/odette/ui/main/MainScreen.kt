@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,9 +34,24 @@ fun MainScreen(
     val playerState by viewModel.playerState.collectAsState()
     val favoriteSongIds by viewModel.favoriteSongIds.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
+    val playbackError by viewModel.playbackError.collectAsState()
+    val skipForwardSeconds by viewModel.skipForwardSeconds.collectAsState()
+    val skipBackwardSeconds by viewModel.skipBackwardSeconds.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
     var showFullPlayer by remember { mutableStateOf(false) }
     var selectedSongForPlaylist by remember { mutableStateOf<Song?>(null) }
+
+    LaunchedEffect(playbackError) {
+        playbackError?.let { errorMsg ->
+            snackbarHostState.showSnackbar(
+                message = errorMsg,
+                actionLabel = "Dismiss",
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearPlaybackError()
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -42,6 +61,7 @@ fun MainScreen(
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 MiniPlayer(
@@ -76,11 +96,15 @@ fun MainScreen(
         FullPlayerSheet(
             playerState = playerState,
             isFavorite = isFavorite,
+            skipForwardSeconds = skipForwardSeconds,
+            skipBackwardSeconds = skipBackwardSeconds,
             onDismiss = { showFullPlayer = false },
             onPlayPauseClicked = { viewModel.onPlayPauseToggled() },
             onNextClicked = { viewModel.onNextClicked() },
             onPreviousClicked = { viewModel.onPreviousClicked() },
             onSeekTo = { viewModel.onSeekTo(it) },
+            onSeekForward = { viewModel.onSeekForward() },
+            onSeekBackward = { viewModel.onSeekBackward() },
             onToggleShuffle = { viewModel.onToggleShuffle() },
             onToggleRepeat = { viewModel.onToggleRepeat() },
             onToggleFavorite = { viewModel.toggleFavorite(currentSong.id) },
