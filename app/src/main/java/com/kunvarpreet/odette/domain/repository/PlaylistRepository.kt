@@ -2,7 +2,6 @@ package com.kunvarpreet.odette.domain.repository
 
 import com.kunvarpreet.odette.domain.model.Playlist
 import com.kunvarpreet.odette.domain.model.PlaylistWithSongs
-import com.kunvarpreet.odette.domain.model.Song
 import kotlinx.coroutines.flow.Flow
 
 interface PlaylistRepository {

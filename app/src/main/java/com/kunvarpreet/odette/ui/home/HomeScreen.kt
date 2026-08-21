@@ -1,6 +1,5 @@
 package com.kunvarpreet.odette.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,22 +22,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.rounded.Album
-import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -62,6 +55,7 @@ import com.kunvarpreet.odette.ui.components.SongArtwork
 
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     songs: List<Song>,
     albums: List<Album>,
     artists: List<Artist>,
@@ -75,8 +69,7 @@ fun HomeScreen(
     onArtistSelected: (Artist) -> Unit,
     onToggleFavorite: (String) -> Unit = {},
     onAddToPlaylist: (Song) -> Unit = {},
-    onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
+    onRefresh: () -> Unit
 ) {
     if (!hasPermission) {
         Box(

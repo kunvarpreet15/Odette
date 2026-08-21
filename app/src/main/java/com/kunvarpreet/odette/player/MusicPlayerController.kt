@@ -8,7 +8,6 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.kunvarpreet.odette.data.repository.UserPreferencesRepository
 import com.kunvarpreet.odette.domain.model.PlaybackStatus
 import com.kunvarpreet.odette.domain.model.PlayerState
@@ -27,6 +26,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 class MusicPlayerController @Inject constructor(
@@ -185,7 +185,7 @@ class MusicPlayerController @Inject constructor(
         progressJob = scope.launch {
             while (isActive) {
                 updateProgress()
-                delay(250)
+                delay(250.milliseconds)
             }
         }
     }

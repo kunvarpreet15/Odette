@@ -63,6 +63,7 @@ import com.kunvarpreet.odette.ui.components.SongArtwork
 
 @Composable
 fun LibraryScreen(
+    modifier: Modifier = Modifier,
     songs: List<Song>,
     albums: List<Album>,
     artists: List<Artist>,
@@ -74,8 +75,7 @@ fun LibraryScreen(
     onArtistSelected: (Artist) -> Unit = {},
     onGenreSelected: (Genre) -> Unit = {},
     onToggleFavorite: (String) -> Unit = {},
-    onAddToPlaylist: (Song) -> Unit = {},
-    modifier: Modifier = Modifier
+    onAddToPlaylist: (Song) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Songs", "Albums", "Artists", "Genres")

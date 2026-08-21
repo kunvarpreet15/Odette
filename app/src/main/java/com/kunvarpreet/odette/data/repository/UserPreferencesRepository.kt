@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 enum class AppThemeMode {
     SYSTEM,
@@ -50,7 +51,7 @@ class UserPreferencesRepository @Inject constructor(
     val savedPlaybackState: StateFlow<PlaybackSavedState> = _savedPlaybackState.asStateFlow()
 
     fun setThemeMode(mode: AppThemeMode) {
-        prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+        prefs.edit { putString(KEY_THEME_MODE, mode.name) }
         _themeMode.value = mode
     }
 
@@ -64,7 +65,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     fun setDynamicColor(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_DYNAMIC_COLOR, enabled).apply()
+        prefs.edit { putBoolean(KEY_DYNAMIC_COLOR, enabled) }
         _dynamicColor.value = enabled
     }
 
@@ -73,7 +74,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     fun setSkipForwardSeconds(seconds: Int) {
-        prefs.edit().putInt(KEY_SKIP_FORWARD, seconds).apply()
+        prefs.edit { putInt(KEY_SKIP_FORWARD, seconds) }
         _skipForwardSeconds.value = seconds
     }
 
@@ -82,7 +83,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     fun setSkipBackwardSeconds(seconds: Int) {
-        prefs.edit().putInt(KEY_SKIP_BACKWARD, seconds).apply()
+        prefs.edit { putInt(KEY_SKIP_BACKWARD, seconds) }
         _skipBackwardSeconds.value = seconds
     }
 
@@ -98,13 +99,13 @@ class UserPreferencesRepository @Inject constructor(
         repeatModeOrdinal: Int
     ) {
         val serializedQueue = queueSongIds.joinToString(separator = ",")
-        prefs.edit()
-            .putString(KEY_LAST_SONG_ID, lastSongId)
-            .putString(KEY_LAST_QUEUE, serializedQueue)
-            .putLong(KEY_LAST_POSITION, positionMs)
-            .putBoolean(KEY_SHUFFLE_ENABLED, shuffleEnabled)
-            .putInt(KEY_REPEAT_MODE, repeatModeOrdinal)
-            .apply()
+        prefs.edit {
+            putString(KEY_LAST_SONG_ID, lastSongId)
+                .putString(KEY_LAST_QUEUE, serializedQueue)
+                .putLong(KEY_LAST_POSITION, positionMs)
+                .putBoolean(KEY_SHUFFLE_ENABLED, shuffleEnabled)
+                .putInt(KEY_REPEAT_MODE, repeatModeOrdinal)
+        }
 
         _savedPlaybackState.value = PlaybackSavedState(
             lastSongId = lastSongId,
