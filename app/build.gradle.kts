@@ -44,7 +44,6 @@ android {
 }
 
 dependencies {
-    ksp(libs.hilt.compiler)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
@@ -62,9 +61,9 @@ dependencies {
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)
     implementation(libs.media3.common)
-    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Album
@@ -216,7 +217,7 @@ private fun SongsTab(
                             ) {
                                 DropdownMenuItem(
                                     text = { Text("Add to playlist") },
-                                    leadingIcon = { Icon(Icons.Rounded.PlaylistAdd, contentDescription = null) },
+                                    leadingIcon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) },
                                     onClick = {
                                         showMenu = false
                                         onAddToPlaylist(song)

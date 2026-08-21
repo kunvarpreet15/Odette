@@ -1,6 +1,10 @@
 package com.kunvarpreet.odette.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -49,8 +53,8 @@ sealed class Screen(
     data object Playlists : Screen(
         route = "playlists",
         title = "Playlists",
-        selectedIcon = Icons.Filled.PlaylistPlay,
-        unselectedIcon = Icons.Outlined.PlaylistPlay
+        selectedIcon = Icons.AutoMirrored.Filled.PlaylistPlay,
+        unselectedIcon = Icons.AutoMirrored.Outlined.PlaylistPlay
     )
 
     data object Settings : Screen(
@@ -77,8 +81,8 @@ sealed class Screen(
     data object PlaylistDetail : Screen(
         route = "playlist_detail/{playlistId}",
         title = "Playlist",
-        selectedIcon = Icons.Filled.QueueMusic,
-        unselectedIcon = Icons.Outlined.QueueMusic
+        selectedIcon = Icons.AutoMirrored.Filled.QueueMusic,
+        unselectedIcon = Icons.AutoMirrored.Outlined.QueueMusic
     ) {
         fun createRoute(playlistId: String) = "playlist_detail/$playlistId"
     }

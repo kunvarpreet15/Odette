@@ -23,10 +23,10 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): OdetteDatabase {
         return Room.databaseBuilder(
-            context,
-            OdetteDatabase::class.java,
-            OdetteDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration().build()
+                context,
+                OdetteDatabase::class.java,
+                OdetteDatabase.DATABASE_NAME
+            ).fallbackToDestructiveMigration(true).build()
     }
 
     @Provides

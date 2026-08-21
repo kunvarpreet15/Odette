@@ -18,6 +18,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Add
@@ -112,7 +115,7 @@ fun PlaylistDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -176,7 +179,7 @@ fun PlaylistDetailScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = Icons.Rounded.QueueMusic,
+                                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(40.dp)
@@ -509,7 +512,7 @@ private fun PlaylistSongRow(
                 }
                 DropdownMenuItem(
                     text = { Text("Add to another playlist") },
-                    leadingIcon = { Icon(Icons.Rounded.PlaylistAdd, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) },
                     onClick = {
                         showMenu = false
                         onAddToOtherPlaylist()

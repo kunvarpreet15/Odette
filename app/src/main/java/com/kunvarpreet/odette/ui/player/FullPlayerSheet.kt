@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Close
@@ -128,7 +130,7 @@ fun FullPlayerSheet(
 
                 IconButton(onClick = { showQueue = !showQueue }) {
                     Icon(
-                        imageVector = if (showQueue) Icons.Rounded.Close else Icons.Rounded.QueueMusic,
+                        imageVector = if (showQueue) Icons.Rounded.Close else Icons.AutoMirrored.Rounded.QueueMusic,
                         contentDescription = "Toggle Queue",
                         tint = if (showQueue) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
@@ -246,7 +248,7 @@ private fun PlayerMainView(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onAddToPlaylist) {
                     Icon(
-                        imageVector = Icons.Rounded.PlaylistAdd,
+                        imageVector = Icons.AutoMirrored.Rounded.PlaylistAdd,
                         contentDescription = "Add to Playlist",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(26.dp)
