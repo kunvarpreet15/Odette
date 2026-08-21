@@ -228,8 +228,8 @@ class UserDataRepositoryTest {
             updatePlaylistsFlow()
             updateSongsFlow(playlistSong.playlistId)
         }
-        override suspend fun insertPlaylistSongs(songs: List<PlaylistSongEntity>) {
-            songs.forEach { insertPlaylistSong(it) }
+        override suspend fun insertPlaylistSongs(playlistSongs: List<PlaylistSongEntity>) {
+            playlistSongs.forEach { insertPlaylistSong(it) }
         }
         override suspend fun deletePlaylistSong(playlistId: String, songId: String) {
             playlistSongs.removeAll { it.playlistId == playlistId && it.songId == songId }
